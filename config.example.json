@@ -1,0 +1,5 @@
+{
+    "managementHost": "localhost",
+    "secret": "",
+    "port": 3000
+}

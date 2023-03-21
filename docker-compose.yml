@@ -1,0 +1,14 @@
+version: '3.5'
+
+services:
+  bot:
+    image: ghcr.io/wilsonthewolf/george:latest
+    container_name: george
+    volumes:
+      - ./data:/app/data
+    restart: on-failure:5
+    stop_grace_period: 10s
+    ports:
+      - 3000:3000
+    environment:
+      - SECRET=example

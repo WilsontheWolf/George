@@ -1,0 +1,14 @@
+{
+  "name": "George",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MPL-2.0",
+  "type": "module",
+  "dependencies": {
+    "@koa/router": "^12.0.0",
+    "enmap": "^5.9.5",
+    "koa": "^2.14.1",
+    "koa-bodyparser": "^4.3.0",
+    "mime": "^3.0.0"
+  }
+}
