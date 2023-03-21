@@ -9,6 +9,8 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     if: "! contains(toJSON(github.event.commits.*.message), 'chore(deps-dev)')"
+    permissions:
+      packages: write
     concurrency:
       group: main
       cancel-in-progress: true
