@@ -1,7 +1,7 @@
-version: '3.5'
+version: "3.5"
 
 services:
-  bot:
+  george:
     image: ghcr.io/wilsonthewolf/george:latest
     container_name: george
     volumes:
