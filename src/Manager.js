@@ -3,11 +3,21 @@ import Enmap from "enmap";
  * @typedef Redirect
  * @property {string} url
  * @property {boolean} [permanent=true]
+ * @property {boolean} [allowRegex=false]
+ */
+
+/**
+ * @typedef RedirectWithKey
+ * @property {string} key
+ * @property {string} url
+ * @property {boolean} [permanent=true]
+ * @property {boolean} [allowRegex=false]
  */
 
 
 const defaultRedirect = {
-    permanent: true
+    permanent: true,
+    allowRegex: false,
 };
 
 class Manager {
@@ -27,6 +37,8 @@ class Manager {
         if (!redirect || typeof redirect !== 'object') throw new Error('Redirect must be an object.');
         if (!redirect.url) throw new Error('Redirect must have a URL.');
         if (typeof redirect.url !== 'string') throw new Error('Redirect URL must be a string.');
+        if (typeof redirect.permanent !== 'undefined' && typeof redirect.permanent !== 'boolean') throw new Error('Redirect permanent must be a boolean.');
+        if (typeof redirect.allowRegex !== 'undefined' && typeof redirect.allowRegex !== 'boolean') throw new Error('Redirect allowRegex must be a boolean.');
         try {
             new URL(redirect.url);
         } catch (e) {
@@ -34,7 +46,12 @@ class Manager {
         }
     }
 
-    transformRedirect(redirect) {
+    /**
+     * Transforms a redirect, filling in default values.
+     * @param {Redirect} redirect - The redirect to transform.
+     * @returns {Redirect}
+     */
+    transformRedirect(redirect = {}) {
         return {
             ...defaultRedirect,
             ...redirect
@@ -76,7 +93,28 @@ class Manager {
      * @returns {Redirect?}
      */
     get(key) {
-        return this.transformRedirect(this.#map.get(key));
+        if (this.#map.has(key))
+            return this.transformRedirect(this.#map.get(key));
+        else return null;
+    }
+
+    /**
+     * Gets a redirect from the manager, respecting the allowRegex property.
+     * @param {string} key - The key to get the redirect from.
+     * @returns {RedirectWithKey?}
+     */
+    find(key) {
+        let redirect = this.get(key);
+        if (redirect) return { ...redirect, key };
+        for (const [k, v] of this.#map) {
+            if (v.allowRegex && new RegExp(k).test(key)) {
+                redirect = this.transformRedirect(v);
+                key = k;
+                break;
+            }
+        }
+        if (!redirect) return null;
+        return { ...redirect, key };
     }
 
     /**
@@ -89,12 +127,23 @@ class Manager {
     }
 
     /**
-     * Deletes a redirect from the manager.
-     * @param {string} key - The key to delete the redirect from.
+     * Checks if a redirect exists, respecting the allowRegex property.
+     * @param {string} key - The key to check.
      * @returns {boolean}
      */
+    exists(key) {
+        if (this.has(key)) return true;
+        if (this.#map.some((value, slug) => value.allowRegex && new RegExp(slug).test(key))) return true;
+        return false;
+    }
+
+    /**
+     * Deletes a redirect from the manager.
+     * @param {string} key - The key to delete the redirect from.
+     */
     delete(key) {
-        return this.#map.delete(key);
+        this.#map.delete(key);
+        this.#stats.delete(key);
     }
 
     /**
@@ -142,6 +191,23 @@ class Manager {
             stats[key] = value;
         }
         return stats;
+    }
+
+    /**
+     * Applies a regex redirect to a URL.
+     * @param {string} r - The regex to apply.
+     * @param {string} url - The URL to apply the redirect to.
+     * @param {string} toRun - The string to run the regex on.
+     * @returns {string} - The new URL.
+     */
+    applyRegex(r, url, toRun) {
+        const regex = new RegExp(r);
+        const match = regex.exec(toRun);
+        let fin = url.replace(/\$([0-9]+)/g, (m, p1) => {
+            return match[parseInt(p1)] || '';
+        });
+        new URL(fin);
+        return fin;
     }
 }
 

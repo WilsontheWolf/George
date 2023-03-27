@@ -27,7 +27,7 @@ const deleteRedirect = async (slug) => {
     }
 };
 
-const addRedirect = async (slug, url, permanent) => {
+const addRedirect = async (slug, url, permanent, allowRegex) => {
     const res = await fetch('/_api/redirects/', {
         method: 'POST',
         headers: {
@@ -37,6 +37,7 @@ const addRedirect = async (slug, url, permanent) => {
             slug,
             url,
             permanent,
+            allowRegex,
         }),
     });
 
@@ -45,7 +46,7 @@ const addRedirect = async (slug, url, permanent) => {
     }
 };
 
-const updateRedirect = async (slug, url, permanent) => {
+const updateRedirect = async (slug, url, permanent, allowRegex) => {
     const res = await fetch('/_api/redirects/' + slug, {
         method: 'PATCH',
         headers: {
@@ -54,6 +55,7 @@ const updateRedirect = async (slug, url, permanent) => {
         body: JSON.stringify({
             url,
             permanent,
+            allowRegex,
         }),
     });
 
@@ -85,6 +87,7 @@ const handleAdd = async (e) => {
     const slug = form.slug.value;
     const url = form.url.value;
     const permanent = form.permanent.checked;
+    const allowRegex = form.allowRegex.checked;
 
     if (!slug || !url) {
         alert('Please fill out all fields');
@@ -101,9 +104,9 @@ const handleAdd = async (e) => {
 
     try {
         if (patch) {
-            await updateRedirect(slug, url, permanent);
+            await updateRedirect(slug, url, permanent, allowRegex);
         } else {
-            await addRedirect(slug, url, permanent);
+            await addRedirect(slug, url, permanent, allowRegex);
         }
         // await refreshData();
         location.reload();
@@ -121,6 +124,7 @@ const handleFillIn = (e) => {
     form.slug.value = redirect.key;
     form.url.value = redirect.url;
     form.permanent.checked = redirect.permanent;
+    form.allowRegex.checked = redirect.allowRegex;
 };
 
 const renderUI = () => {
@@ -134,6 +138,7 @@ const renderUI = () => {
                     <th>Slug</th>
                     <th>URL</th>
                     <th>Permanent</th>
+                    <th>Is Regex</th>
                     <th>Clicks</th>
                     <th>Actions</th>
                 </tr>
@@ -144,6 +149,7 @@ const renderUI = () => {
                     <td><a href="/_api/redirect/${redirect.key}">${redirect.key}</a></td>
                     <td><a href="${redirect.url}">${redirect.url}</a></td>
                     <td>${redirect.permanent ? 'Yes' : 'No'}</td>
+                    <td>${redirect.allowRegex ? 'Yes' : 'No'}</td>
                     <td>${stats[redirect.key] || 0}</td>
                     <td>
                         <button class="delete" data-slug="${redirect.key}">Delete</button>
@@ -166,6 +172,10 @@ const renderUI = () => {
             <p>
                 <label for="permanent">Permanent</label>
                 <input type="checkbox" name="permanent" id="permanent">
+            </p>
+            <p>
+                <label for="allowRegex">Allow Regex</label>
+                <input type="checkbox" name="allowRegex" id="allowRegex">
             </p>
             <p>
                 <button type="submit">Add</button>

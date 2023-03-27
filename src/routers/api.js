@@ -7,23 +7,27 @@ const router = new Router();
 
 router.get('/redirect/:slug*', async (ctx, next) => {
     const slug = ctx.params.slug || '_default';
-    if (!sharedManager.has(slug)) {
+    if (!sharedManager.exists(slug)) {
         ctx.status = 404;
         return;
     }
-    const redirect = sharedManager.get(slug);
+    const redirect = sharedManager.find(slug);
     if (!redirect) {
         ctx.status = 404;
         return;
     }
     else {
-        ctx.redirect(redirect.url);
-        ctx.body = `<p>Redirecting to <a href="${redirect.url}">${redirect.url}</a>...</p>`;
+        let url = redirect.url;
+        if (redirect.allowRegex) {
+            url = sharedManager.applyRegex(redirect.key, redirect.url, ctx.params.slug)
+        }
+        ctx.redirect(url);
+        ctx.body = `<p>Redirecting to <a href="${url}">${url}</a>...</p>`;
         ctx.type = 'text/html';
         ctx.status = redirect.permanent ? 301 : 302;
 
-        if(!ctx.isManagement) {
-            sharedManager.hit(slug);
+        if (!ctx.isManagement) {
+            sharedManager.hit(redirect.key);
         }
     }
 });
@@ -47,6 +51,7 @@ router.post('/redirects', async (ctx, next) => {
     const slug = ctx.request?.body?.slug;
     const url = ctx.request?.body?.url;
     const permanent = !!ctx.request?.body?.permanent;
+    const allowRegex = !!ctx.request?.body?.allowRegex;
 
     if (!slug || !url) {
         ctx.status = 400;
@@ -54,7 +59,7 @@ router.post('/redirects', async (ctx, next) => {
     }
 
     try {
-        sharedManager.add(slug, { url, permanent });
+        sharedManager.add(slug, { url, permanent, allowRegex });
     }
     catch (e) {
         ctx.status = 400;
@@ -65,7 +70,7 @@ router.post('/redirects', async (ctx, next) => {
     ctx.status = 200;
 });
 
-router.patch('/redirects/:slug', async (ctx, next) => {
+router.patch('/redirects/:slug*', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
         return;
@@ -74,6 +79,7 @@ router.patch('/redirects/:slug', async (ctx, next) => {
     const slug = ctx.params.slug;
     const url = ctx.request?.body?.url;
     const permanent = !!ctx.request?.body?.permanent;
+    const allowRegex = !!ctx.request?.body?.allowRegex;
 
     if (!slug) {
         ctx.status = 400;
@@ -86,7 +92,7 @@ router.patch('/redirects/:slug', async (ctx, next) => {
     }
 
     try {
-        sharedManager.update(slug, { url, permanent });
+        sharedManager.update(slug, { url, permanent, allowRegex });
     }
     catch (e) {
         ctx.status = 400;
@@ -97,7 +103,7 @@ router.patch('/redirects/:slug', async (ctx, next) => {
     ctx.status = 200;
 });
 
-router.delete('/redirects/:slug', async (ctx, next) => {
+router.delete('/redirects/:slug*', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
         return;
@@ -116,7 +122,7 @@ router.delete('/redirects/:slug', async (ctx, next) => {
     }
 
     sharedManager.delete(slug);
-    
+
     ctx.status = 200;
 });
 
