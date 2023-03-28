@@ -70,13 +70,13 @@ router.post('/redirects', async (ctx, next) => {
     ctx.status = 200;
 });
 
-router.patch('/redirects/:slug*', async (ctx, next) => {
+router.patch('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
         return;
     }
 
-    const slug = ctx.params.slug;
+    const slug = ctx.request?.body?.slug;
     const url = ctx.request?.body?.url;
     const permanent = !!ctx.request?.body?.permanent;
     const allowRegex = !!ctx.request?.body?.allowRegex;
@@ -103,13 +103,13 @@ router.patch('/redirects/:slug*', async (ctx, next) => {
     ctx.status = 200;
 });
 
-router.delete('/redirects/:slug*', async (ctx, next) => {
+router.delete('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
         return;
     }
 
-    const slug = ctx.params.slug;
+    const slug = ctx.request?.body?.slug;
 
     if (!slug) {
         ctx.status = 400;

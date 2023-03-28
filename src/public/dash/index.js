@@ -18,8 +18,14 @@ const getData = async (url, opts = {}) => {
 };
 
 const deleteRedirect = async (slug) => {
-    const res = await fetch('/_api/redirects/' + slug, {
+    const res = await fetch('/_api/redirects', {
         method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            slug,
+        }),
     });
 
     if (!res.ok) {
@@ -28,7 +34,7 @@ const deleteRedirect = async (slug) => {
 };
 
 const addRedirect = async (slug, url, permanent, allowRegex) => {
-    const res = await fetch('/_api/redirects/', {
+    const res = await fetch('/_api/redirects', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -47,7 +53,7 @@ const addRedirect = async (slug, url, permanent, allowRegex) => {
 };
 
 const updateRedirect = async (slug, url, permanent, allowRegex) => {
-    const res = await fetch('/_api/redirects/' + slug, {
+    const res = await fetch('/_api/redirects', {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -56,6 +62,7 @@ const updateRedirect = async (slug, url, permanent, allowRegex) => {
             url,
             permanent,
             allowRegex,
+            slug,
         }),
     });
 

@@ -2,7 +2,6 @@ import Koa from 'koa';
 import { getConfig, resolveStatic } from './helpers.js';
 import { join, normalize } from 'node:path';
 import router from './routers/main.js';
-import sharedManager from './Manager.js';
 import bodyParser from 'koa-bodyparser';
 
 const app = new Koa();

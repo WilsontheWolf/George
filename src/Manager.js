@@ -107,7 +107,7 @@ class Manager {
         let redirect = this.get(key);
         if (redirect) return { ...redirect, key };
         for (const [k, v] of this.#map) {
-            if (v.allowRegex && new RegExp(k).test(key)) {
+            if (v.allowRegex && new RegExp(`^${k}$`).test(key)) {
                 redirect = this.transformRedirect(v);
                 key = k;
                 break;
@@ -133,7 +133,7 @@ class Manager {
      */
     exists(key) {
         if (this.has(key)) return true;
-        if (this.#map.some((value, slug) => value.allowRegex && new RegExp(slug).test(key))) return true;
+        if (this.#map.some((value, slug) => value.allowRegex && new RegExp(`^${slug}$`).test(key))) return true;
         return false;
     }
 
@@ -201,7 +201,7 @@ class Manager {
      * @returns {string} - The new URL.
      */
     applyRegex(r, url, toRun) {
-        const regex = new RegExp(r);
+        const regex = new RegExp(`^${r}$`);
         const match = regex.exec(toRun);
         let fin = url.replace(/\$([0-9]+)/g, (m, p1) => {
             return match[parseInt(p1)] || '';
