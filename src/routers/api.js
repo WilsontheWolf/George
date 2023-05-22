@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import { getConfig } from "../helpers.js";
+import { getConfig, hashPassword } from "../helpers.js";
 import sharedManager from "../Manager.js";
 
 const config = await getConfig()
@@ -136,19 +136,26 @@ router.get('/stats', async (ctx, next) => {
     ctx.type = 'application/json';
 });
 
+const hash = config.hash = config.secret ? hashPassword(config.secret) : null;
+
+delete config.secret;
+delete process.env.SECRET;
 
 router.post('/login', async (ctx, next) => {
     const pass = ctx.request?.body?.password;
-    if (!pass || !config.secret) {
+    if (!pass || !hash) {
         ctx.redirect('/');
+        ctx.cookies.set('auth', null);
         return;
     }
-    if (pass !== config.secret) {
+    const passHash = hashPassword(pass);
+    if (passHash !== hash) {
         ctx.redirect('/');
+        ctx.cookies.set('auth', null);
         return;
     }
 
-    ctx.cookies.set('auth', config.secret, { httpOnly: true });
+    ctx.cookies.set('auth', passHash, { httpOnly: true });
 
     ctx.redirect('/dash');
 });

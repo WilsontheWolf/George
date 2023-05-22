@@ -21,7 +21,8 @@ app
         ctx.track = ctx.request.headers.dnt !== '1';
 
         // Check auth
-        ctx.auth = ctx.isManagement && ctx.cookies.get('auth') === config.secret;
+        const cookie = ctx.cookies.get('auth') || null;
+        ctx.auth = ctx.isManagement && cookie === config.hash;
 
         await next();
     })
@@ -30,8 +31,8 @@ app
     .use(router.allowedMethods())
     .use(async (ctx, next) => {
         if (ctx.status === 404 && ctx.isManagement && !ctx.body) {
-            await resolveStatic(ctx.request.url).then(({data, mime}) => {
-                if(data) {
+            await resolveStatic(ctx.request.url).then(({ data, mime }) => {
+                if (data) {
                     ctx.body = data;
                     ctx.type = mime;
                     ctx.status = 200;

@@ -1,4 +1,5 @@
 import Mime from 'mime';
+import { createHmac } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 
@@ -62,4 +63,10 @@ const resolveStatic = async (file) => {
     return tryFile(resolved, file);
 }
 
-export { getConfig, resolveStatic };
+const hashPassword = (pass) => {
+    const hmac = createHmac('sha256', pass);
+
+    return hmac.digest('hex');
+}
+
+export { getConfig, resolveStatic, hashPassword };
