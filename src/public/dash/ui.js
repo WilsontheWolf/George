@@ -1,4 +1,4 @@
-import george from "./data.js";
+import george, { refreshData } from "./data.js";
 import { addRedirect, deleteRedirect, updateRedirect } from "./requests.js";
 
 const writeToMain = (html) => {
@@ -25,8 +25,7 @@ const handleDelete = async (e) => {
 
     try {
         await deleteRedirect(slug);
-        // await refreshData();
-        location.reload();
+        await refreshData();
     } catch (e) {
         alert(e.message);
     }
@@ -60,8 +59,7 @@ const handleAdd = async (e) => {
         } else {
             await addRedirect(slug, url, permanent, allowRegex);
         }
-        // await refreshData();
-        location.reload();
+        await refreshData();
     } catch (e) {
         alert(e.message);
     }
