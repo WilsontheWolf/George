@@ -5,15 +5,23 @@ import sharedManager from "../Manager.js";
 const config = await getConfig()
 const router = new Router();
 
+router.use(async (ctx, next) => {
+    ctx.type = 'application/json';
+    await next();
+});
+
 router.get('/redirect/:slug*', async (ctx, next) => {
     const slug = ctx.params.slug || '_default';
+    ctx.type = 'text/html';
     if (!sharedManager.exists(slug)) {
         ctx.status = 404;
+        ctx.body = "<p>I'm sorry, but that page couldn't be found.</p>"
         return;
     }
     const redirect = sharedManager.find(slug);
     if (!redirect) {
         ctx.status = 404;
+        ctx.body = "<p>I'm sorry, but that page couldn't be found.</p>"
         return;
     }
     else {
@@ -23,7 +31,6 @@ router.get('/redirect/:slug*', async (ctx, next) => {
         }
         ctx.redirect(url);
         ctx.body = `<p>Redirecting to <a href="${url}">${url}</a>...</p>`;
-        ctx.type = 'text/html';
         ctx.status = redirect.permanent ? 301 : 302;
 
         if (!ctx.isManagement) {
@@ -32,19 +39,22 @@ router.get('/redirect/:slug*', async (ctx, next) => {
     }
 });
 
+
+
 router.get('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
+        ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
 
-    ctx.body = sharedManager.redirects();
-    ctx.type = 'application/json';
+    ctx.body = { ok: true, data: sharedManager.redirects() };
 });
 
 router.post('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
+        ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
 
@@ -55,15 +65,17 @@ router.post('/redirects', async (ctx, next) => {
 
     if (!slug || !url) {
         ctx.status = 400;
+        ctx.body = { ok: false, msg: 'Slug and URL are required' };
         return;
     }
 
     try {
         sharedManager.add(slug, { url, permanent, allowRegex });
+        ctx.body = { ok: true };
     }
     catch (e) {
         ctx.status = 400;
-        ctx.body = e.message;
+        ctx.body = { ok: false, msg: e.message };
         return;
     }
 
@@ -73,6 +85,7 @@ router.post('/redirects', async (ctx, next) => {
 router.patch('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
+        ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
 
@@ -83,20 +96,23 @@ router.patch('/redirects', async (ctx, next) => {
 
     if (!slug) {
         ctx.status = 400;
+        ctx.body = { ok: false, msg: 'Slug is required' };
         return;
     }
 
     if (!sharedManager.has(slug)) {
         ctx.status = 404;
+        ctx.body = { ok: false, msg: 'Slug not found' };
         return;
     }
 
     try {
         sharedManager.update(slug, { url, permanent, allowRegex });
+        ctx.body = { ok: true };
     }
     catch (e) {
         ctx.status = 400;
-        ctx.body = e.message;
+        ctx.body = { ok: false, msg: e.message };
         return;
     }
 
@@ -106,6 +122,7 @@ router.patch('/redirects', async (ctx, next) => {
 router.delete('/redirects', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
+        ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
 
@@ -113,15 +130,18 @@ router.delete('/redirects', async (ctx, next) => {
 
     if (!slug) {
         ctx.status = 400;
+        ctx.body = { ok: false, msg: 'Slug is required' };
         return;
     }
 
     if (!sharedManager.has(slug)) {
         ctx.status = 404;
+        ctx.body = { ok: false, msg: 'Slug not found' };
         return;
     }
 
     sharedManager.delete(slug);
+    ctx.body = { ok: true };
 
     ctx.status = 200;
 });
@@ -129,12 +149,14 @@ router.delete('/redirects', async (ctx, next) => {
 router.get('/stats', async (ctx, next) => {
     if (!ctx.auth) {
         ctx.status = 401;
+        ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
 
-    ctx.body = sharedManager.stats();
-    ctx.type = 'application/json';
+    ctx.body = { ok: true, data: sharedManager.stats() };
 });
+
+
 
 const hash = config.hash = config.secret ? hashPassword(config.secret) : null;
 
