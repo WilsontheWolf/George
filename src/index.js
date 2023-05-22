@@ -31,13 +31,12 @@ app
     .use(router.allowedMethods())
     .use(async (ctx, next) => {
         if (ctx.status === 404 && ctx.isManagement && !ctx.body) {
-            await resolveStatic(ctx.request.url).then(({ data, mime }) => {
-                if (data) {
-                    ctx.body = data;
-                    ctx.type = mime;
-                    ctx.status = 200;
-                }
-            });
+            const { data, mime } = await resolveStatic(ctx.request.url);
+            if (data) {
+                ctx.body = data;
+                ctx.type = mime;
+                ctx.status = 200;
+            }
         }
         await next();
     })

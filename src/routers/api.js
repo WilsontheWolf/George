@@ -39,24 +39,50 @@ router.get('/redirect/:slug*', async (ctx, next) => {
     }
 });
 
+const hash = config.hash = config.secret ? hashPassword(config.secret) : null;
 
+delete config.secret;
+delete process.env.SECRET;
 
-router.get('/redirects', async (ctx, next) => {
-    if (!ctx.auth) {
+router.post('/login', async (ctx, next) => {
+    const pass = ctx.request?.body?.password;
+    if (!pass || !hash) {
+        ctx.redirect('/');
+        ctx.cookies.set('auth', null);
+        return;
+    }
+    const passHash = hashPassword(pass);
+    if (passHash !== hash) {
+        ctx.redirect('/');
+        ctx.cookies.set('auth', null);
+        return;
+    }
+
+    ctx.cookies.set('auth', passHash, { httpOnly: true });
+
+    ctx.redirect('/dash');
+});
+
+router.all('/logout', async (ctx, next) => {
+    ctx.cookies.set('auth', '', { httpOnly: true });
+    ctx.redirect('/');
+});
+
+router.use(async (ctx, next) => {
+    if(!ctx.auth) {
         ctx.status = 401;
         ctx.body = { ok: false, msg: 'Not authorized' };
         return;
     }
+    await next();
+});
+
+router.get('/redirects', async (ctx, next) => {
 
     ctx.body = { ok: true, data: sharedManager.redirects() };
 });
 
 router.post('/redirects', async (ctx, next) => {
-    if (!ctx.auth) {
-        ctx.status = 401;
-        ctx.body = { ok: false, msg: 'Not authorized' };
-        return;
-    }
 
     const slug = ctx.request?.body?.slug;
     const url = ctx.request?.body?.url;
@@ -83,11 +109,6 @@ router.post('/redirects', async (ctx, next) => {
 });
 
 router.patch('/redirects', async (ctx, next) => {
-    if (!ctx.auth) {
-        ctx.status = 401;
-        ctx.body = { ok: false, msg: 'Not authorized' };
-        return;
-    }
 
     const slug = ctx.request?.body?.slug;
     const url = ctx.request?.body?.url;
@@ -120,11 +141,6 @@ router.patch('/redirects', async (ctx, next) => {
 });
 
 router.delete('/redirects', async (ctx, next) => {
-    if (!ctx.auth) {
-        ctx.status = 401;
-        ctx.body = { ok: false, msg: 'Not authorized' };
-        return;
-    }
 
     const slug = ctx.request?.body?.slug;
 
@@ -154,37 +170,6 @@ router.get('/stats', async (ctx, next) => {
     }
 
     ctx.body = { ok: true, data: sharedManager.stats() };
-});
-
-
-
-const hash = config.hash = config.secret ? hashPassword(config.secret) : null;
-
-delete config.secret;
-delete process.env.SECRET;
-
-router.post('/login', async (ctx, next) => {
-    const pass = ctx.request?.body?.password;
-    if (!pass || !hash) {
-        ctx.redirect('/');
-        ctx.cookies.set('auth', null);
-        return;
-    }
-    const passHash = hashPassword(pass);
-    if (passHash !== hash) {
-        ctx.redirect('/');
-        ctx.cookies.set('auth', null);
-        return;
-    }
-
-    ctx.cookies.set('auth', passHash, { httpOnly: true });
-
-    ctx.redirect('/dash');
-});
-
-router.all('/logout', async (ctx, next) => {
-    ctx.cookies.set('auth', '', { httpOnly: true });
-    ctx.redirect('/');
 });
 
 export default router;

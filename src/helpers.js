@@ -19,7 +19,7 @@ const getConfig = async () => {
             console.warn('No config file found. Using default config.', e);
             return {};
         });
-    configCache = { ...defaultConfig, ...config}
+    configCache = { ...defaultConfig, ...config }
     return configCache;
 }
 
@@ -49,15 +49,20 @@ const resolveStatic = async (file) => {
     const ext = extname(name);
 
     let resolved;
-    if (ext)
+    if (ext) {
         resolved = join(path, name);
+    }
     else {
-        if (!name) resolved = join(path, 'index.html');
-        else resolved = [
-            join(path, name + '.html'),
-            join(path, name),
-            join(path, name, 'index.html'),
-        ]
+        if (!name) {
+            resolved = join(path, 'index.html');
+        }
+        else {
+            resolved = [
+                join(path, name + '.html'),
+                join(path, name),
+                join(path, name, 'index.html'),
+            ]
+        }
     }
 
     return tryFile(resolved, file);
