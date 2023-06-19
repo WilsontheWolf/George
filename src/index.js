@@ -1,11 +1,10 @@
 import Koa from 'koa';
-import { getConfig, resolveStatic } from './helpers.js';
+import { config, resolveStatic } from './helpers.js';
 import { join, normalize } from 'node:path';
 import router from './routers/main.js';
 import bodyParser from 'koa-bodyparser';
 
 const app = new Koa();
-const config = await getConfig();
 
 const port = config.port || 3000;
 

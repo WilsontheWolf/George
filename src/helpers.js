@@ -3,25 +3,11 @@ import { createHmac } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 
-const defaultConfig = {
-    managementHost: 'localhost',
+const config = {
+    managementHost: process.env.MANAGEMENT_HOST || 'localhost',
     secret: process.env.SECRET,
     port: process.env.PORT || 3000,
 };
-
-let configCache;
-
-const getConfig = async () => {
-    if (configCache) return configCache;
-    const config = await fs.readFile('./data/config.json', 'utf-8')
-        .then(JSON.parse)
-        .catch((e) => {
-            console.warn('No config file found. Using default config.', e);
-            return {};
-        });
-    configCache = { ...defaultConfig, ...config }
-    return configCache;
-}
 
 const staticCache = new Map();
 const fileCache = new Map();
@@ -74,4 +60,4 @@ const hashPassword = (pass) => {
     return hmac.digest('hex');
 }
 
-export { getConfig, resolveStatic, hashPassword };
+export { config, resolveStatic, hashPassword };

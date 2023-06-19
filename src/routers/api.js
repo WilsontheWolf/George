@@ -1,8 +1,7 @@
 import Router from "@koa/router";
-import { getConfig, hashPassword } from "../helpers.js";
+import { config, hashPassword } from "../helpers.js";
 import sharedManager from "../Manager.js";
 
-const config = await getConfig()
 const router = new Router();
 
 router.use(async (ctx, next) => {

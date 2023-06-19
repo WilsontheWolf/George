@@ -18,10 +18,12 @@ Install node.js and yarn.
 Clone the repo and run `yarn install` and `node .`.
 
 ## Configuration
-You can configure George by creating a `config.json` file in the data directory.
+You can configure George using environment variables
 
-```sh
-cp config.example.json data/config.json
-```
+| Variable          | Description                                                                               | Default     |
+|-------------------|-------------------------------------------------------------------------------------------|-------------|
+| `PORT`            | The port to listen on                                                                     | `3000`      |
+| `SECRET`          | The secret to use for accessing the dash. Leaving blank allows anyone to access the dash. | None        |
+| `MANAGEMENT_HOST` | The host to use for the management dashboard                                              | `localhost` |
 
 Good luck!
