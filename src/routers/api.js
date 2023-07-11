@@ -162,12 +162,6 @@ router.delete('/redirects', async (ctx, next) => {
 });
 
 router.get('/stats', async (ctx, next) => {
-    if (!ctx.auth) {
-        ctx.status = 401;
-        ctx.body = { ok: false, msg: 'Not authorized' };
-        return;
-    }
-
     ctx.body = { ok: true, data: sharedManager.stats() };
 });
 
